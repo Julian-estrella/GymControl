@@ -1,0 +1,143 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class UserController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        $users = User::all();
+        return view('admin.users.index', compact('users'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        // Usamos los roles definidos en el modelo en lugar de Spatie
+        $roles = [
+            User::ROLE_ADMIN => 'Admin',
+            User::ROLE_STAFF => 'Staff',
+            User::ROLE_CLIENTE => 'Cliente',
+        ];
+
+        return view('admin.users.create', compact('roles'));
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'phone' => 'nullable|string|max:15',
+            'role' => 'required|in:' . User::ROLE_ADMIN . ',' . User::ROLE_STAFF . ',' . User::ROLE_CLIENTE,
+        ]);
+
+        $data['password'] = bcrypt($data['password']);
+        $data['is_active'] = true;
+
+        $user = User::create($data);
+
+        session()->flash('swal', [
+            'icon' => 'success',
+            'title' => 'Usuario creado correctamente',
+            'text' => 'El usuario ha sido creado con éxito'
+        ]);
+
+        // Si el usuario creado es un cliente, redirigir a editar el cliente
+        if ($user->role === User::ROLE_CLIENTE) {
+            return redirect()->route('admin.clients.edit', $user->client);
+        }
+
+        return redirect()->route('admin.users.index');
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(User $user)
+    {
+        $roles = [
+            User::ROLE_ADMIN => 'Admin',
+            User::ROLE_STAFF => 'Staff',
+            User::ROLE_CLIENTE => 'Cliente',
+        ];
+
+        return view('admin.users.edit', compact('user', 'roles'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:15',
+            'role' => 'required|in:' . User::ROLE_ADMIN . ',' . User::ROLE_STAFF . ',' . User::ROLE_CLIENTE,
+            'is_active' => 'boolean',
+        ]);
+
+        // Si el usuario quiere editar contraseña
+        if ($request->filled('password')) {
+            $request->validate([
+                'password' => 'required|string|min:8|confirmed',
+            ]);
+            $data['password'] = bcrypt($request->password);
+        }
+
+        // Si no viene is_active es porque el checkbox no se marcó (false)
+        $data['is_active'] = $request->has('is_active');
+
+        $user->update($data);
+
+        session()->flash('swal', [
+            'icon' => 'success',
+            'title' => 'Usuario actualizado',
+            'text' => 'El usuario ha sido actualizado correctamente'
+        ]);
+
+        return redirect()->route('admin.users.edit', $user->id);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(User $user)
+    {
+        // No permitir que el usuario logueado se borre a si mismo
+        if ($user->id == Auth::user()->id) {
+            session()->flash('swal', [
+                'icon' => 'error',
+                'title' => 'Acción denegada',
+                'text' => 'No puedes eliminarte a ti mismo',
+            ]);
+            return redirect(route('admin.users.index'));
+        }
+
+        // Eliminar usuario
+        $user->delete();
+
+        session()->flash('swal', [
+            'icon' => 'success',
+            'title' => 'Usuario eliminado',
+            'text' => 'El usuario ha sido eliminado correctamente'
+        ]);
+
+        return redirect(route('admin.users.index'));
+    }
+}

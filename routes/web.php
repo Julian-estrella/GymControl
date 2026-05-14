@@ -1,6 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\ClientController;
 
 /*
 |--------------------------------------------------------------------------
@@ -8,11 +11,8 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// Root: redirect to appropriate dashboard if authenticated, else show welcome
+// Root: show welcome page
 Route::get('/', function () {
-    if (auth()->check()) {
-        return redirect()->route(auth()->user()->dashboardRoute());
-    }
     return view('welcome');
 });
 
@@ -28,14 +28,17 @@ Route::middleware([
         return redirect()->route(auth()->user()->dashboardRoute());
     })->name('dashboard');
 
-    // 1. Admin Dashboard
-    Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
-        Route::view('dashboard', 'admin.dashboard')->name('dashboard');
+    // 1. Admin Dashboard (Also accessible by staff as per User model `dashboardRoute`)
+    Route::middleware(['role:admin,staff'])->prefix('admin')->name('admin.')->group(function () {
+        Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        
+        // Clients Management (Accessible by both Admin and Staff)
+        Route::resource('clients', ClientController::class);
     });
 
-    // 2. Staff Dashboard
-    Route::middleware(['role:staff,admin'])->prefix('staff')->name('staff.')->group(function () {
-        Route::view('dashboard', 'staff.dashboard')->name('dashboard');
+    // 2. Admin Only Routes (Users Management)
+    Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
+        Route::resource('users', UserController::class);
     });
 
     // 3. Cliente Dashboard
@@ -48,5 +51,3 @@ Route::middleware([
         return redirect()->route('profile.show');
     })->name('profile');
 });
-
-

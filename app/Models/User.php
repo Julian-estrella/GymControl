@@ -10,6 +10,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
@@ -18,6 +19,7 @@ class User extends Authenticatable
     use HasProfilePhoto;
     use Notifiable;
     use TwoFactorAuthenticatable;
+    use SoftDeletes;
 
     // Role constants
     const ROLE_ADMIN   = 'admin';
@@ -35,6 +37,7 @@ class User extends Authenticatable
         'password',
         'role',
         'phone',
+        'is_active',
     ];
 
     /**
@@ -94,10 +97,53 @@ class User extends Authenticatable
      */
     public function dashboardRoute(): string
     {
-        return match ($this->role) {
+        return match (strtolower($this->role ?? '')) {
             self::ROLE_ADMIN   => 'admin.dashboard',
-            self::ROLE_STAFF   => 'staff.dashboard',
+            self::ROLE_STAFF   => 'admin.dashboard',
             default            => 'cliente.dashboard',
         };
+    }
+
+    public function client()
+    {
+        return $this->hasOne(Client::class);
+    }
+
+    protected static function booted()
+    {
+        static::created(function ($user) {
+            if ($user->role === self::ROLE_CLIENTE) {
+                $client = Client::where('email', $user->email)->first();
+                if ($client) {
+                    $client->updateQuietly(['user_id' => $user->id]);
+                } else {
+                    $user->client()->create([
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'phone' => $user->phone,
+                        'membership_status' => 'sin_membresia',
+                    ]);
+                }
+            }
+        });
+
+        static::updated(function ($user) {
+            if ($user->role === self::ROLE_CLIENTE) {
+                if ($user->client) {
+                    $user->client->updateQuietly([
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'phone' => $user->phone,
+                    ]);
+                } else {
+                    $user->client()->create([
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'phone' => $user->phone,
+                        'membership_status' => 'sin_membresia',
+                    ]);
+                }
+            }
+        });
     }
 }

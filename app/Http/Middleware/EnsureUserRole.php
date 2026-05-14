@@ -20,7 +20,7 @@ class EnsureUserRole
     {
         $user = $request->user();
 
-        if (! $user || ! in_array($user->role, $roles)) {
+        if (! $user || ! in_array(strtolower($user->role ?? ''), $roles)) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Acceso no autorizado.'], 403);
             }

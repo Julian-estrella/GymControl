@@ -18,8 +18,8 @@
                         </x-nav-link>
                     @endif
 
-                    @if(auth()->user()->isAdmin() || auth()->user()->isStaff())
-                        <x-nav-link href="{{ route('staff.dashboard') }}" :active="request()->routeIs('staff.dashboard')">
+                    @if(auth()->user()->isStaff())
+                        <x-nav-link href="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard')">
                             {{ __('Panel Staff') }}
                         </x-nav-link>
                     @endif
@@ -157,8 +157,8 @@
                 </x-responsive-nav-link>
             @endif
 
-            @if(auth()->user()->isAdmin() || auth()->user()->isStaff())
-                <x-responsive-nav-link href="{{ route('staff.dashboard') }}" :active="request()->routeIs('staff.dashboard')">
+            @if(auth()->user()->isStaff())
+                <x-responsive-nav-link href="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard')">
                     {{ __('Panel Staff') }}
                 </x-responsive-nav-link>
             @endif
