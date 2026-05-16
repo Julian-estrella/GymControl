@@ -61,6 +61,27 @@
                             Clientes
                         </a>
                     </li>
+
+                    <li>
+                        <a href="{{ route('admin.trainers.index') }}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100 {{ request()->routeIs('admin.trainers.*') ? 'bg-gray-100 font-semibold border-r-4 border-indigo-600 text-indigo-600' : '' }}">
+                            <i class="fa-solid fa-person-running w-5 text-center mr-3"></i>
+                            Entrenadores
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('admin.classes.index') }}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100 {{ request()->routeIs('admin.classes.*') ? 'bg-gray-100 font-semibold border-r-4 border-indigo-600 text-indigo-600' : '' }}">
+                            <i class="fa-solid fa-calendar-check w-5 text-center mr-3"></i>
+                            Clases
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('admin.membership-plans.index') }}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100 {{ request()->routeIs('admin.membership-plans.*') ? 'bg-gray-100 font-semibold border-r-4 border-indigo-600 text-indigo-600' : '' }}">
+                            <i class="fa-solid fa-credit-card w-5 text-center mr-3"></i>
+                            Membresías
+                        </a>
+                    </li>
                 </ul>
             </nav>
         </aside>

@@ -4,6 +4,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ClientController;
+use App\Http\Controllers\Admin\TrainerController;
+use App\Http\Controllers\Admin\GymClassController;
+use App\Http\Controllers\Admin\MembershipPlanController;
+use App\Http\Controllers\Admin\ClientMembershipController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -28,12 +33,28 @@ Route::middleware([
         return redirect()->route(auth()->user()->dashboardRoute());
     })->name('dashboard');
 
-    // 1. Admin Dashboard (Also accessible by staff as per User model `dashboardRoute`)
+    // 1. Admin Dashboard + shared resources (Admin & Staff)
     Route::middleware(['role:admin,staff'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        
-        // Clients Management (Accessible by both Admin and Staff)
+
+        // Clients Management
         Route::resource('clients', ClientController::class);
+
+        // Trainers Management
+        Route::resource('trainers', TrainerController::class);
+        Route::patch('trainers/{trainer}/toggle', [TrainerController::class, 'toggle'])->name('trainers.toggle');
+
+        // GymClasses Management
+        Route::resource('classes', GymClassController::class);
+
+        // Membership Plans
+        Route::resource('membership-plans', MembershipPlanController::class);
+        Route::patch('membership-plans/{membershipPlan}/toggle', [MembershipPlanController::class, 'toggle'])->name('membership-plans.toggle');
+
+        // Client Memberships (assign/cancel)
+        Route::get('clients/{client}/memberships/create', [ClientMembershipController::class, 'create'])->name('client-memberships.create');
+        Route::post('clients/{client}/memberships', [ClientMembershipController::class, 'store'])->name('client-memberships.store');
+        Route::patch('client-memberships/{clientMembership}/cancel', [ClientMembershipController::class, 'destroy'])->name('client-memberships.cancel');
     });
 
     // 2. Admin Only Routes (Users Management)

@@ -28,6 +28,11 @@ class Client extends Model
         return $this->hasMany(MembershipHistory::class);
     }
 
+    public function clientMemberships()
+    {
+        return $this->hasMany(ClientMembership::class);
+    }
+
     protected static function booted()
     {
         static::created(function ($client) {
