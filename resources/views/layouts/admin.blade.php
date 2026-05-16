@@ -82,6 +82,13 @@
                             Membresías
                         </a>
                     </li>
+
+                    <li>
+                        <a href="{{ route('admin.payments.index') }}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100 {{ request()->routeIs('admin.payments.*') ? 'bg-gray-100 font-semibold border-r-4 border-indigo-600 text-indigo-600' : '' }}">
+                            <i class="fa-solid fa-file-invoice-dollar w-5 text-center mr-3"></i>
+                            Pagos
+                        </a>
+                    </li>
                 </ul>
             </nav>
         </aside>

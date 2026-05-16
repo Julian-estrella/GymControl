@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
+<x-breadcrumb :links="['Clientes' => route('admin.clients.index'), 'Detalles' => '']" />
 <div class="mb-6">
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold text-gray-800">Perfil del Cliente</h1>
@@ -77,7 +78,7 @@
                     <div class="space-y-3">
                         @foreach($memberships as $membership)
                         <div class="flex items-center justify-between p-4 rounded-lg border
-                            {{ $membership->status === 'activo' ? 'border-green-200 bg-green-50' : ($membership->status === 'cancelado' ? 'border-red-100 bg-red-50' : 'border-gray-200 bg-gray-50') }}">
+                            {{ $membership->computed_status === 'activo' ? 'border-green-200 bg-green-50' : ($membership->computed_status === 'cancelado' ? 'border-red-100 bg-red-50' : ($membership->computed_status === 'expirado' ? 'border-yellow-200 bg-yellow-50' : 'border-gray-200 bg-gray-50')) }}">
                             <div>
                                 <p class="font-semibold text-gray-800">{{ $membership->membershipPlan->name }}</p>
                                 <p class="text-xs text-gray-500 mt-1">
@@ -90,8 +91,8 @@
                             </div>
                             <div class="flex items-center gap-3">
                                 <span class="px-3 py-1 rounded-full text-xs font-semibold
-                                    {{ $membership->status === 'activo' ? 'bg-green-200 text-green-800' : ($membership->status === 'cancelado' ? 'bg-red-200 text-red-800' : 'bg-gray-200 text-gray-700') }}">
-                                    {{ ucfirst($membership->status) }}
+                                    {{ $membership->computed_status === 'activo' ? 'bg-green-200 text-green-800' : ($membership->computed_status === 'cancelado' ? 'bg-red-200 text-red-800' : ($membership->computed_status === 'expirado' ? 'bg-yellow-200 text-yellow-800' : 'bg-gray-200 text-gray-700')) }}">
+                                    {{ ucfirst($membership->computed_status) }}
                                 </span>
                                 @if($membership->status === 'activo')
                                 <form action="{{ route('admin.client-memberships.cancel', $membership->id) }}" method="POST" class="inline">
@@ -157,6 +158,68 @@
                     <div class="text-center text-gray-500 py-8">
                         <i class="fa-solid fa-inbox text-4xl mb-3 text-gray-300"></i>
                         <p>No hay registros en el historial de este cliente.</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <!-- Historial de Pagos -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-gray-800">
+                    <i class="fa-solid fa-receipt mr-2 text-indigo-600"></i> Historial de Pagos
+                </h3>
+            </div>
+            <div class="p-6">
+                @php $payments = $client->payments()->with('membershipPlan')->orderByDesc('created_at')->get(); @endphp
+                @if($payments->count() > 0)
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Folio / Fecha</th>
+                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Monto / Plan</th>
+                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                                    <th scope="col" class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Ver</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                @foreach($payments as $payment)
+                                <tr>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <div class="text-sm font-bold text-gray-900">{{ $payment->folio }}</div>
+                                        <div class="text-xs text-gray-500">{{ $payment->created_at->format('d/m/Y') }}</div>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <div class="text-sm font-semibold text-green-600">${{ number_format($payment->amount, 2) }}</div>
+                                        <div class="text-xs text-gray-500">{{ $payment->membershipPlan->name }}</div>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        @if($payment->status === 'paid')
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Pagado</span>
+                                        @elseif($payment->status === 'pending')
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pendiente</span>
+                                        @else
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Cancelado</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-right">
+                                        <a href="{{ route('admin.payments.show', $payment->id) }}" class="text-indigo-600 hover:text-indigo-900 mr-2" title="Detalles">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                        <a href="{{ route('admin.payments.pdf', $payment->id) }}" class="text-gray-600 hover:text-gray-900" title="PDF">
+                                            <i class="fa-solid fa-file-pdf"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <div class="text-center text-gray-400 py-6">
+                        <i class="fa-solid fa-receipt text-3xl mb-2"></i>
+                        <p class="text-sm">No hay pagos registrados para este cliente.</p>
                     </div>
                 @endif
             </div>

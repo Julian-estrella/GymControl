@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
+<x-breadcrumb :links="['Clases' => route('admin.classes.index'), 'Editar' => '']" />
 <div class="mb-6">
     <a href="{{ route('admin.classes.index') }}" class="text-indigo-600 hover:text-indigo-800 text-sm">
         <i class="fa-solid fa-arrow-left mr-1"></i> Volver a Clases

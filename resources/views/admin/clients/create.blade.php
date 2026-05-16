@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
+<x-breadcrumb :links="['Clientes' => route('admin.clients.index'), 'Registrar' => '']" />
 <div class="mb-6">
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold text-gray-800">Registrar Cliente</h1>

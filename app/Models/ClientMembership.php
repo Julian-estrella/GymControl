@@ -32,4 +32,22 @@ class ClientMembership extends Model
     {
         return $this->belongsTo(MembershipPlan::class);
     }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function getComputedStatusAttribute()
+    {
+        if ($this->status === 'cancelado') {
+            return 'cancelado';
+        }
+
+        if ($this->end_date && $this->end_date < now()->startOfDay()) {
+            return 'expirado';
+        }
+
+        return $this->status;
+    }
 }

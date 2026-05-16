@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
+<x-breadcrumb :links="['Planes de Membresía' => '']" />
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold text-gray-800">Planes de Membresía</h1>
     <a href="{{ route('admin.membership-plans.create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded shadow">

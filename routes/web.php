@@ -55,6 +55,11 @@ Route::middleware([
         Route::get('clients/{client}/memberships/create', [ClientMembershipController::class, 'create'])->name('client-memberships.create');
         Route::post('clients/{client}/memberships', [ClientMembershipController::class, 'store'])->name('client-memberships.store');
         Route::patch('client-memberships/{clientMembership}/cancel', [ClientMembershipController::class, 'destroy'])->name('client-memberships.cancel');
+
+        // Payments
+        Route::resource('payments', App\Http\Controllers\Admin\PaymentController::class)->except(['edit', 'update']);
+        Route::patch('payments/{payment}/cancel', [App\Http\Controllers\Admin\PaymentController::class, 'cancel'])->name('payments.cancel');
+        Route::get('payments/{payment}/pdf', [App\Http\Controllers\Admin\PaymentController::class, 'downloadPdf'])->name('payments.pdf');
     });
 
     // 2. Admin Only Routes (Users Management)

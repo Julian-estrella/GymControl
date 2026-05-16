@@ -33,6 +33,11 @@ class Client extends Model
         return $this->hasMany(ClientMembership::class);
     }
 
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
     protected static function booted()
     {
         static::created(function ($client) {

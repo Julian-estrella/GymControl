@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
+<x-breadcrumb :links="['Clientes' => route('admin.clients.index'), 'Asignar Membresía' => '']" />
 <div class="mb-6">
     <a href="{{ route('admin.clients.show', $client->id) }}" class="text-indigo-600 hover:text-indigo-800 text-sm">
         <i class="fa-solid fa-arrow-left mr-1"></i> Volver al perfil de {{ $client->name }}

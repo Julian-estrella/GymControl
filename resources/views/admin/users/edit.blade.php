@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
+<x-breadcrumb :links="['Usuarios' => route('admin.users.index'), 'Editar' => '']" />
 <div class="mb-6">
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold text-gray-800">Editar Usuario: {{ $user->name }}</h1>
