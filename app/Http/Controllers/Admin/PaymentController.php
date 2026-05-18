@@ -66,7 +66,17 @@ class PaymentController extends Controller
             $data['client_membership_id'] = $activeMembership->id;
         }
 
-        Payment::create($data);
+        $payment = Payment::create($data);
+
+        // Enviar comprobante por correo electrónico al cliente (o al correo de pruebas si no tiene uno registrado)
+        try {
+            $payment->load(['client', 'membershipPlan']);
+            $recipientEmail = !empty($payment->client->email) ? $payment->client->email : 'julianstarbe@gmail.com';
+            
+            \Illuminate\Support\Facades\Mail::to($recipientEmail)->send(new \App\Mail\PaymentReceiptMail($payment));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error al enviar correo de recibo de pago: ' . $e->getMessage());
+        }
 
         session()->flash('swal', [
             'icon' => 'success',
