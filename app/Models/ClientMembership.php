@@ -16,11 +16,13 @@ class ClientMembership extends Model
         'end_date',
         'status',
         'notes',
+        'reminder_sent_at',
     ];
 
     protected $casts = [
-        'start_date' => 'date',
-        'end_date'   => 'date',
+        'start_date'       => 'date',
+        'end_date'         => 'date',
+        'reminder_sent_at' => 'datetime',
     ];
 
     public function client()

@@ -46,6 +46,8 @@ Route::middleware([
 
         // GymClasses Management
         Route::resource('classes', GymClassController::class);
+        Route::post('classes/{class}/enroll', [GymClassController::class, 'enroll'])->name('classes.enroll');
+        Route::delete('classes/{class}/unenroll/{client}', [GymClassController::class, 'unenroll'])->name('classes.unenroll');
 
         // Membership Plans
         Route::resource('membership-plans', MembershipPlanController::class);

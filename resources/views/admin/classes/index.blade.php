@@ -94,13 +94,16 @@
                     @endif
                 </td>
                 <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-center">
-                    <a href="{{ route('admin.classes.edit', $class->id) }}" class="text-blue-500 hover:text-blue-800 mr-3" title="Editar">
+                    <a href="{{ route('admin.classes.show', $class->id) }}" class="text-indigo-600 hover:text-indigo-950 mr-3 text-base" title="Inscribir / Ver Alumnos">
+                        <i class="fa-solid fa-users text-lg"></i>
+                    </a>
+                    <a href="{{ route('admin.classes.edit', $class->id) }}" class="text-blue-500 hover:text-blue-800 mr-3 text-base" title="Editar">
                         <i class="fa-solid fa-pen-to-square"></i>
                     </a>
                     <form action="{{ route('admin.classes.destroy', $class->id) }}" method="POST" class="inline delete-form">
                         @csrf
                         @method('DELETE')
-                        <button type="button" class="text-red-500 hover:text-red-800 btn-delete" title="Eliminar">
+                        <button type="button" class="text-red-500 hover:text-red-800 btn-delete text-base" title="Eliminar">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </form>

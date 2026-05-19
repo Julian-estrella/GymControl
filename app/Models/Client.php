@@ -38,6 +38,13 @@ class Client extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function gymClasses()
+    {
+        return $this->belongsToMany(GymClass::class, 'gym_class_client')
+                    ->withPivot('last_reminder_sent_date')
+                    ->withTimestamps();
+    }
+
     protected static function booted()
     {
         static::created(function ($client) {

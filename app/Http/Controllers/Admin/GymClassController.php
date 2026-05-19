@@ -57,8 +57,15 @@ class GymClassController extends Controller
 
     public function show(GymClass $class)
     {
-        $class->load('trainer');
-        return view('admin.classes.show', compact('class'));
+        $class->load(['trainer', 'clients']);
+        
+        $enrolledClientIds = $class->clients->pluck('id')->toArray();
+        $availableClients = \App\Models\Client::where('membership_status', 'activo')
+            ->whereNotIn('id', $enrolledClientIds)
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.classes.show', compact('class', 'availableClients'));
     }
 
     public function edit(GymClass $class)
@@ -111,5 +118,55 @@ class GymClassController extends Controller
         ]);
 
         return redirect()->route('admin.classes.index');
+    }
+
+    public function enroll(Request $request, GymClass $class)
+    {
+        $request->validate([
+            'client_id' => 'required|exists:clients,id',
+        ]);
+
+        $clientId = $request->client_id;
+
+        if ($class->clients()->count() >= $class->max_capacity) {
+            session()->flash('swal', [
+                'icon'  => 'error',
+                'title' => 'Clase llena',
+                'text'  => 'No se puede inscribir más clientes. Se ha alcanzado el cupo máximo.',
+            ]);
+            return back();
+        }
+
+        if ($class->clients()->where('client_id', $clientId)->exists()) {
+            session()->flash('swal', [
+                'icon'  => 'warning',
+                'title' => 'Ya inscrito',
+                'text'  => 'El cliente ya se encuentra inscrito en esta clase.',
+            ]);
+            return back();
+        }
+
+        $class->clients()->attach($clientId);
+
+        session()->flash('swal', [
+            'icon'  => 'success',
+            'title' => 'Inscripción exitosa',
+            'text'  => 'El cliente ha sido inscrito a la clase correctamente.',
+        ]);
+
+        return back();
+    }
+
+    public function unenroll(GymClass $class, \App\Models\Client $client)
+    {
+        $class->clients()->detach($client->id);
+
+        session()->flash('swal', [
+            'icon'  => 'success',
+            'title' => 'Baja exitosa',
+            'text'  => 'El cliente ha sido dado de baja de la clase.',
+        ]);
+
+        return back();
     }
 }

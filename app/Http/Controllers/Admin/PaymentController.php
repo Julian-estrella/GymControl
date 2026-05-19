@@ -54,28 +54,44 @@ class PaymentController extends Controller
 
         $data['registered_by'] = auth()->id();
         
-        // Find active membership if exists to link it, though optional based on current flow
         $client = Client::find($data['client_id']);
-        $activeMembership = $client->clientMemberships()
-            ->where('membership_plan_id', $data['membership_plan_id'])
-            ->where('status', 'activo')
-            ->latest()
-            ->first();
 
-        if ($activeMembership) {
-            $data['client_membership_id'] = $activeMembership->id;
+        // Si el pago es registrado como pagado, le asignamos la membresía correspondiente
+        if ($data['status'] === 'paid') {
+            $plan = MembershipPlan::find($data['membership_plan_id']);
+            
+            // Marcar membresías activas anteriores como vencido
+            $client->clientMemberships()
+                ->where('status', 'activo')
+                ->update(['status' => 'vencido']);
+
+            // Crear la membresía para el cliente
+            $membership = \App\Models\ClientMembership::create([
+                'client_id' => $client->id,
+                'membership_plan_id' => $plan->id,
+                'start_date' => now(),
+                'end_date' => now()->addDays($plan->duration_days),
+                'status' => 'activo',
+            ]);
+
+            // Actualizar estado de membresía del cliente
+            $client->update(['membership_status' => 'activo']);
+
+            $data['client_membership_id'] = $membership->id;
         }
 
         $payment = Payment::create($data);
 
-        // Enviar comprobante por correo electrónico al cliente (o al correo de pruebas si no tiene uno registrado)
-        try {
-            $payment->load(['client', 'membershipPlan']);
-            $recipientEmail = !empty($payment->client->email) ? $payment->client->email : 'julianstarbe@gmail.com';
-            
-            \Illuminate\Support\Facades\Mail::to($recipientEmail)->send(new \App\Mail\PaymentReceiptMail($payment));
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Error al enviar correo de recibo de pago: ' . $e->getMessage());
+        // Enviar comprobante por correo electrónico al cliente SOLO si el pago está pagado ("paid")
+        if ($payment->status === 'paid') {
+            try {
+                $payment->load(['client', 'membershipPlan']);
+                $recipientEmail = !empty($payment->client->email) ? $payment->client->email : 'julianstarbe@gmail.com';
+                
+                \Illuminate\Support\Facades\Mail::to($recipientEmail)->send(new \App\Mail\PaymentReceiptMail($payment));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Error al enviar correo de recibo de pago: ' . $e->getMessage());
+            }
         }
 
         session()->flash('swal', [

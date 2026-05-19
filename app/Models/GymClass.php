@@ -31,4 +31,11 @@ class GymClass extends Model
     {
         return $this->belongsTo(Trainer::class);
     }
+
+    public function clients()
+    {
+        return $this->belongsToMany(Client::class, 'gym_class_client')
+                    ->withPivot('last_reminder_sent_date')
+                    ->withTimestamps();
+    }
 }
